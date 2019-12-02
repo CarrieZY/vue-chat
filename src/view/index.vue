@@ -4,11 +4,11 @@
         <div class="asid">
             <div class="asid-header">在线成员</div>
             <div class="asid-content">
-                <List></List>
+                <List :list="userlist"></List>
             </div>
         </div>
         <div class="main">
-            <div class="asid-header">聊天室   <span class="asid-left">欢迎你|{{name}}</span></div>
+            <div class="asid-header">云深不知处|群聊<span class="asid-left">欢迎你|{{name}}</span></div>
             <div class="asid-content">
                 <Message :newMsg="newMsg"/>
             </div>
@@ -31,26 +31,42 @@ export default {
             input:'',//输入的内容
             newMsg:[
                 {type:1,img:'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',txt:'您好',}
-            ],
+            ],//聊天数据
+            userlist:[],//在线用户列表
+            userImg:'',//当前登录用户的头像
         }
     },
     mounted(){
         document.querySelector('body').setAttribute('style','background-color:#999')
+        // // 用户上线信息发送给除自己以外的人
+        this.$socket.on('userInfo',function(userObj){
+            console.log(userObj)
+            // 真实的登录应该把用户信息存在session里。
+            // userSelf = userObj; // 真实的登录应该把用户信息存在session里。
+            localStorage.setItem('user',userObj)
+            this.Online(userObj.name)
+            this.userImg=userObj.img
+            this.name=userObj.name
+        })
     },
     sockets: {
         connect() {
-            console.log('socket connected');
+            console.log('链接成功');
         },
-        UserMsg(value) {
-            console.log(value);
-            this.newMsg.push({
-                txt:value.txt,
-                img:value.img,
-                type:value.type
-            })
+        userList(value){
+            this.userlist=value
+            console.log(this.userlist)
         },
-        login(value){
-            this.name=value.input
+        loginInfo(user){
+            this.Online(user.name)
+            localStorage.setItem('userid',user.id)
+            console.log(user.img)
+            this.userImg=user.img
+            this.name=user.name
+        },
+        toAll(msgObj){
+            console.log(msgObj)
+            this.newMsg.push(msgObj)
         }
     },
     components:{
@@ -62,21 +78,36 @@ export default {
             if(this.input==''){
                 return false
             }
-            this.$socket.emit("message", {
+            this.$socket.emit("toAll", {
                 message: this.input,
                 type:2,
-                img:'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
+                img:this.userImg
             });
-
             this.newMsg.push({
-                img:'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-                txt:this.input,
-                type:2
+                txt: this.input,
+                type:2,
+                img:this.userImg
             })
             this.input=''
         },
         switch(){
 
+        },
+        // 用户下线通知
+        offline(){
+             this.$notify({
+                title: '下线通知',
+                message: this.name+'上线了',
+                position: 'bottom-right'
+            });
+        },
+        // 用户上线通知
+        Online(name){
+            this.$notify({
+            title: '上线通知',
+            message: name+'上线了',
+            position: 'bottom-right'
+            });
         }
     }
 }

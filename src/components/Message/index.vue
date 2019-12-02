@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-for="item in newMsg" :class="[item.type==1?'message-list':'message-list-my']">
+        <div v-for="(item,index) in newMsg" :key="index" :class="[item.type==1?'message-list':'message-list-my']">
             <div class="message-avatar">
                 <img :src='item.img' alt="">
             </div>

@@ -9,20 +9,26 @@
 <script>
 export default {
     data() {
-    return {
-      input: '',
-      pwd:''
-    }
-  },
+        return {
+        input: '',
+        pwd:'',
+        imgList:[
+            require('../assets/1.jpg'), require('../assets/2.jpg'), require('../assets/3.jpg'), require('../assets/4.jpg')]
+        }
+    },
   methods:{
       login(){
-          this.$socket.emit('login',{
-              name:this.input,
-              pwd:this.pwd,
-              id:'001',
-          })
+            //生成随机头像
+            //随机头像
+            var randomNum = Math.floor(Math.random()*4);
+            var img = this.imgList[randomNum];
+            this.$socket.emit('login',{
+                name:this.input,
+                pwd:this.pwd,
+                img:img
+            })
 
-          this.$router.push({name:'home',query:{id:'001'}})
+          this.$router.push({name:'home'})
       }
   }
 }

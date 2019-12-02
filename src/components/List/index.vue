@@ -1,15 +1,24 @@
 <template>
-    <div class="list">
-        <div class="list-left">
-            <img src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" alt=''/>
+    <div>
+        <div class="list" v-for="(item,index) in list" :key="index" @click="toOne(index)">
+            <div class="list-left">
+                <img :src="item.img" alt=''/>
+            </div>
+            <div class="list-right">{{item.name}}</div>
         </div>
-        <div class="list-right">liyang</div>
     </div>
 </template>
 
 <script>
 export default {
-    
+    props:{
+        list:{}
+    },
+    methods:{
+        toOne(index){
+            
+        }
+    }
 }
 </script>
 
