@@ -4,11 +4,11 @@
         <div class="asid">
             <div class="asid-header">在线成员</div>
             <div class="asid-content">
-                <List :list="userlist"></List>
+                <List :list="userlist" @listenChildEvent="toOne"></List>
             </div>
         </div>
         <div class="main">
-            <div class="asid-header">云深不知处|群聊<span class="asid-left">欢迎你|{{name}}</span></div>
+            <div class="asid-header">{{title}}<span class="asid-left">欢迎你|{{name}}</span></div>
             <div class="asid-content">
                 <Message :newMsg="newMsg"/>
             </div>
@@ -29,44 +29,43 @@ export default {
         return {
             name:'',//用户登录名
             input:'',//输入的内容
-            newMsg:[
-                {type:1,img:'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',txt:'您好',}
-            ],//聊天数据
+            newMsg:[],//聊天数据
             userlist:[],//在线用户列表
             userImg:'',//当前登录用户的头像
+            msgid:null,//当前要发送的用户的id
+            title:'群聊'
         }
     },
     mounted(){
         document.querySelector('body').setAttribute('style','background-color:#999')
-        // // 用户上线信息发送给除自己以外的人
-        this.$socket.on('userInfo',function(userObj){
-            console.log(userObj)
-            // 真实的登录应该把用户信息存在session里。
-            // userSelf = userObj; // 真实的登录应该把用户信息存在session里。
-            localStorage.setItem('user',userObj)
-            this.Online(userObj.name)
-            this.userImg=userObj.img
-            this.name=userObj.name
-        })
     },
     sockets: {
         connect() {
             console.log('链接成功');
         },
         userList(value){
+            this.userlist.push({
+                img:value.img,
+                name:value.name,
+                id:value.id
+            })
             this.userlist=value
-            console.log(this.userlist)
+        },
+        userInfo(user){
+            this.userImg=user.img
         },
         loginInfo(user){
             this.Online(user.name)
             localStorage.setItem('userid',user.id)
-            console.log(user.img)
+            console.log(user)
             this.userImg=user.img
             this.name=user.name
         },
         toAll(msgObj){
             console.log(msgObj)
-            this.newMsg.push(msgObj)
+        },
+        toOne(msg){
+            this.newMsg.push(msg)
         }
     },
     components:{
@@ -78,20 +77,40 @@ export default {
             if(this.input==''){
                 return false
             }
-            this.$socket.emit("toAll", {
-                message: this.input,
-                type:2,
-                img:this.userImg
-            });
-            this.newMsg.push({
-                txt: this.input,
-                type:2,
-                img:this.userImg
-            })
-            this.input=''
+            if(this.msgid){
+                this.$socket.emit("toOne",{
+                    id:this.msgid,
+                    txt: this.input,
+                    type:1,
+                    img:this.userImg
+                })
+                this.newMsg.push({
+                    txt: this.input,
+                    type:2,
+                    img:this.userImg
+                })
+                this.input=''
+            }else{
+                this.$socket.emit("toAll", {
+                    message: this.input,
+                    type:2,
+                    img:this.userImg
+                });
+                this.newMsg.push({
+                    txt: this.input,
+                    type:2,
+                    img:this.userImg
+                })
+                this.input=''   
+            }
         },
         switch(){
 
+        },
+        toOne(index){
+            console.log(index)
+            this.msgid=this.userlist[index].id
+            this.title=this.userlist[index].name
         },
         // 用户下线通知
         offline(){

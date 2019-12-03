@@ -1,17 +1,9 @@
 var app = require('express')();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+var _ = require('underscore');  //用于实现单聊
 // 服务端接收事件 socket检测数据的发送
 io.on('connection',function(socket) {
-    // socket.on('message', function (data) {
-    //   console.log(data.message)                //接收数据
-    //   //发送数据
-    //   socket.emit('UserMsg', {
-    //     txt:'您好，请问有什么需要帮助你的？',
-    //     type:1,
-    //     img:'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-    //    });
-    // });
     // 登录注册的信息
     // 得到客户端传过来的数据，将用户信息塞入到服务端的userList，服务器将新的userList发送给各个客户端。
     let userList=[]
@@ -32,6 +24,18 @@ io.on('connection',function(socket) {
         img:msgObj.img
       });
     });
+
+    // 接收单聊发送的消息
+    socket.on('toOne',(msgObj)=>{
+      console.log(msgObj)
+        var toSocket = _.findWhere(io.sockets.sockets,{id:msgObj.id});
+        toSocket.emit('toOne', msgObj);
+    })
+
+    // 当关闭连接后触发 disconnect 事件
+    socket.on('disconnect', function () {
+      console.log('断开一个连接。');
+  });
 });
 
 

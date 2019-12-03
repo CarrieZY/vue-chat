@@ -19,3 +19,27 @@ home.vue：主界面容器组件<br>
 Message/MsgList.vue：聊天消息组件 根据type判断是接收消息还是发送的消息<br>
 list.vue 在线成员组件<br>
 
+群聊，比较简单，我们可以通过socket广播socket.broadcast.emit()，发送给除自己以外的用户。<br>
+```
+socket.on('toAll',function(msgObj){
+    socket.broadcast.emit('toAll',msgObj); 
+});
+```
+
+单聊:，每一个socket有自己的id，我们只需要将socket的id变成我们要发送的那个用户的id，
+```
+socket.on('toOne',function(msgObj){
+    var toSocket = _.findWhere(io.sockets.sockets,{id:msgObj.to});
+    toSocket.emit('toOne', msgObj);
+})
+````
+
+// nodejs的underscore扩展中的findWhere方法，可以在对象集合中，通过对象的属性值找到该对象并返回。
+//     var toSocket = _.findWhere(io.sockets.sockets, {id: toId});
+ 
+//     // socket.emit() ：向建立该连接的客户端广播
+//     // socket.broadcast.emit() ：向除去建立该连接的客户端的所有客户端广播
+//     // io.sockets.emit() ：向所有客户端广播，等同于上面两个的和
+ 
+//     // 通过该连接对象（toSocket）与链接到这个对象的客户端进行单独通信
+//     toSocket.emit('message', data.msg);

@@ -16,7 +16,7 @@ export default {
     },
     methods:{
         toOne(index){
-            
+            this.$emit('listenChildEvent',index)
         }
     }
 }
